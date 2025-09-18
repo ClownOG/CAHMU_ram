@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-"""
-RAM-Executable Smooth Motion Script
-- Single instance
-- Progressive vertical/horizontal movement
-- Tray icon
-- No logs or temporary files
-"""
-
 import sys
 import threading
 import time
@@ -23,14 +14,12 @@ if ctypes.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
 # Dependencies
 # ------------------------
 try:
-    import pynput
     from pynput import mouse, keyboard
     import pystray
     from PIL import Image
 except ImportError:
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", "pynput", "pystray", "Pillow"])
-    import pynput
     from pynput import mouse, keyboard
     import pystray
     from PIL import Image
@@ -38,58 +27,53 @@ except ImportError:
 # ------------------------
 # Configuration
 # ------------------------
-modes = [{"verticalStrength": 2, "horizontalStrength": -1, "description": "default"}]
-selected_mode_index = 0
 active = True
-tick_ms = 14
-base_vertical = 2
-max_vertical = 50
-
 left_pressed = False
 right_pressed = False
 running = True
+tick_ms = 14
+base_vertical = 2
 
 mouse_controller = mouse.Controller()
 
 # ------------------------
-# Movement logic
+# Progressive vertical movement logic
 # ------------------------
-def move_cursor(dx, dy):
-    mouse_controller.move(dx, dy)
-
-def motion_loop():
-    global left_pressed, right_pressed, active, selected_mode_index, running
+def vertical_motion_loop():
+    global left_pressed, right_pressed, active, running
     while running:
         if active and left_pressed and right_pressed:
-            mode = modes[selected_mode_index]
             start_time = time.time()
             while running and left_pressed and right_pressed:
                 elapsed = time.time() - start_time
-                vertical_strength = base_vertical
-                if elapsed >= 0.75:
-                    vertical_strength = 3 + ((elapsed - 0.75)//0.35)*1.25
-                if vertical_strength > max_vertical:
-                    vertical_strength = max_vertical
-                dy = vertical_strength
-                dx = mode["horizontalStrength"] * (vertical_strength / 3)
-                move_cursor(dx, dy)
+                # Determine vertical strength
+                if elapsed < 1:
+                    vertical_strength = 3
+                elif elapsed < 3:
+                    vertical_strength = 8
+                elif elapsed < 6:
+                    vertical_strength = 10
+                elif elapsed < 10:
+                    vertical_strength = 12
+                else:
+                    vertical_strength = 12
+                # Move vertically only
+                mouse_controller.move(0, vertical_strength)
                 time.sleep(tick_ms / 1000.0)
         else:
             time.sleep(0.01)
 
-threading.Thread(target=motion_loop, daemon=True).start()
+threading.Thread(target=vertical_motion_loop, daemon=True).start()
 
 # ------------------------
 # Mouse listener
 # ------------------------
 def on_click(x, y, button, pressed):
-    global left_pressed, right_pressed, active, selected_mode_index
+    global left_pressed, right_pressed, active
     if button == mouse.Button.left:
         left_pressed = pressed
     elif button == mouse.Button.right:
         right_pressed = pressed
-    elif button == mouse.Button.x1 and pressed:
-        selected_mode_index = (selected_mode_index + 1) % len(modes)
     elif button == mouse.Button.x2 and pressed:
         active = not active
 
@@ -99,11 +83,9 @@ mouse.Listener(on_click=on_click).start()
 # Keyboard listener
 # ------------------------
 def on_press(key):
-    global active, selected_mode_index, running
+    global active, running
     if key == keyboard.Key.f9:
         active = not active
-    elif key == keyboard.Key.f8:
-        selected_mode_index = (selected_mode_index + 1) % len(modes)
     elif key == keyboard.Key.esc:
         running = False
         icon.stop()
@@ -115,7 +97,7 @@ keyboard.Listener(on_press=on_press).start()
 # System tray
 # ------------------------
 icon_image = Image.new('RGB', (64, 64), (50, 50, 50))  # simple gray square
-icon = pystray.Icon("SmoothMover", icon_image, "Smooth Motion", menu=pystray.Menu(
+icon = pystray.Icon("VerticalMover", icon_image, "Vertical Motion", menu=pystray.Menu(
     pystray.MenuItem("Exit", lambda icon, item: (setattr(sys.modules[__name__], 'running', False), icon.stop()))
 ))
 threading.Thread(target=icon.run, daemon=True).start()
