@@ -33,6 +33,7 @@ right_pressed = False
 running = True
 tick_ms = 14
 base_vertical = 2
+max_vertical = 15  # max multiplier after ramp
 
 mouse_controller = mouse.Controller()
 
@@ -49,15 +50,11 @@ def vertical_motion_loop():
                 # Determine vertical strength
                 if elapsed < 1:
                     vertical_strength = 3
-                elif elapsed < 3:
-                    vertical_strength = 8
-                elif elapsed < 6:
-                    vertical_strength = 10
-                elif elapsed < 10:
-                    vertical_strength = 12
+                elif elapsed < 8:
+                    # Ramp from 3 → 15 linearly
+                    vertical_strength = 3 + (elapsed - 1) * (15 - 3) / (8 - 1)
                 else:
-                    vertical_strength = 12
-                # Move vertically only
+                    vertical_strength = 15
                 mouse_controller.move(0, vertical_strength)
                 time.sleep(tick_ms / 1000.0)
         else:
