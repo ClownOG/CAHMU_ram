@@ -48,9 +48,11 @@ def vertical_motion_loop():
                 # Strength profile
                 if elapsed <= 0.5:
                     vertical_strength = 3
-                else:
+                elif elapsed <= 3:
                     vertical_strength = 6
-                # Vertical only
+                else:
+                    vertical_strength = 9
+                # Move vertically only
                 mouse_controller.move(0, vertical_strength)
                 time.sleep(tick_ms / 1000.0)
         else:
