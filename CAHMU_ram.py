@@ -17,12 +17,14 @@ try:
     from pynput import mouse, keyboard
     import pystray
     from PIL import Image
+    import pyautogui
 except ImportError:
     import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "pynput", "pystray", "Pillow"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "pynput", "pystray", "Pillow", "pyautogui"])
     from pynput import mouse, keyboard
     import pystray
     from PIL import Image
+    import pyautogui
 
 # ------------------------
 # Configuration
@@ -32,33 +34,41 @@ left_pressed = False
 right_pressed = False
 running = True
 tick_ms = 14
-
-mouse_controller = mouse.Controller()
+screen_width, screen_height = 1366, 768
+mid_x, mid_y = screen_width // 2, screen_height // 2
 
 # ------------------------
-# Vertical motion logic
+# Vertical stabilization + optional pull logic
 # ------------------------
-def vertical_motion_loop():
+def stabilize_loop():
     global left_pressed, right_pressed, active, running
     while running:
         if active and left_pressed and right_pressed:
             start_time = time.time()
             while running and left_pressed and right_pressed:
                 elapsed = time.time() - start_time
-                # Strength profile
+
+                # Determine vertical pull strength
                 if elapsed <= 0.5:
-                    vertical_strength = 3
+                    pull_strength = 3
                 elif elapsed <= 3:
-                    vertical_strength = 6
+                    pull_strength = 6
                 else:
-                    vertical_strength = 9
-                # Move vertically only
-                mouse_controller.move(0, vertical_strength)
+                    pull_strength = 9
+
+                # Get current mouse position
+                x, y = pyautogui.position()
+                delta_y = mid_y - y
+
+                # Move cursor vertically to middle + apply pull strength
+                move_y = delta_y * 0.5 + pull_strength  # fraction for smoother correction
+                pyautogui.moveRel(0, move_y)
+
                 time.sleep(tick_ms / 1000.0)
         else:
             time.sleep(0.01)
 
-threading.Thread(target=vertical_motion_loop, daemon=True).start()
+threading.Thread(target=stabilize_loop, daemon=True).start()
 
 # ------------------------
 # Mouse listener
@@ -92,7 +102,7 @@ keyboard.Listener(on_press=on_press).start()
 # System tray
 # ------------------------
 icon_image = Image.new('RGB', (64, 64), (50, 50, 50))  # gray square
-icon = pystray.Icon("VerticalMover", icon_image, "Vertical Motion", menu=pystray.Menu(
+icon = pystray.Icon("VerticalStabilizer", icon_image, "Aim Stabilizer", menu=pystray.Menu(
     pystray.MenuItem("Exit", lambda icon, item: (setattr(sys.modules[__name__], 'running', False), icon.stop()))
 ))
 threading.Thread(target=icon.run, daemon=True).start()
