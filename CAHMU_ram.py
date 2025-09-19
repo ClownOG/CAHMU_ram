@@ -48,13 +48,13 @@ def vertical_pull_loop():
             while running and left_pressed and right_pressed:
                 elapsed = time.time() - start_time
 
-                # Vertical pull strength logic
+                # Pull strength logic
                 if elapsed <= 0.5:
                     v_strength = 3
-                elif elapsed <= 3:
+                elif elapsed <= 2.5:
                     v_strength = 6
                 else:
-                    v_strength = 8
+                    v_strength = 9  # after 2.5s, constant 9x
 
                 # Move vertically only
                 mouse_controller.move(0, v_strength)
