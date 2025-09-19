@@ -33,14 +33,17 @@ active = True
 left_pressed = False
 right_pressed = False
 running = True
-tick_ms = 14
+tick_ms = 14  # 14 ms between moves
+start_strength = 3
+end_strength = 12
+ramp_duration = 4  # seconds
 
 mouse_controller = MouseController()
 
 # ------------------------
-# Vertical-only pull logic
+# Vertical ramp logic
 # ------------------------
-def vertical_pull_loop():
+def vertical_ramp_loop():
     global left_pressed, right_pressed, active, running
     while running:
         if active and left_pressed and right_pressed:
@@ -48,15 +51,11 @@ def vertical_pull_loop():
             while running and left_pressed and right_pressed:
                 elapsed = time.time() - start_time
 
-                # Pull strength logic
-                if elapsed <= 0.5:
-                    v_strength = 3
-                elif elapsed <= 1:
-                    v_strength = 6
-                elif elapsed <= 1.8:
-                    v_strength = 8
+                # Linear ramp calculation
+                if elapsed < ramp_duration:
+                    v_strength = start_strength + ((end_strength - start_strength) * (elapsed / ramp_duration))
                 else:
-                    v_strength = 10  # after 1.8s, constant 10x
+                    v_strength = end_strength  # constant after ramp
 
                 # Move vertically only
                 mouse_controller.move(0, v_strength)
@@ -65,7 +64,7 @@ def vertical_pull_loop():
         else:
             time.sleep(0.01)
 
-threading.Thread(target=vertical_pull_loop, daemon=True).start()
+threading.Thread(target=vertical_ramp_loop, daemon=True).start()
 
 # ------------------------
 # Mouse listener
@@ -98,8 +97,8 @@ keyboard.Listener(on_press=on_press).start()
 # ------------------------
 # System tray
 # ------------------------
-icon_image = Image.new('RGB', (64, 64), (50, 50, 50))  # gray square
-icon = pystray.Icon("VerticalPull", icon_image, "Vertical Pull", menu=pystray.Menu(
+icon_image = Image.new('RGB', (64, 64), (50, 50, 50))  # simple gray square
+icon = pystray.Icon("VerticalRamp", icon_image, "Vertical Ramp", menu=pystray.Menu(
     pystray.MenuItem("Exit", lambda icon, item: (setattr(sys.modules[__name__], 'running', False), icon.stop()))
 ))
 threading.Thread(target=icon.run, daemon=True).start()
