@@ -79,7 +79,7 @@ def on_press(key):
         if key == keyboard.Key.f9:
             active = not active
             print(f"Active toggled: {'ON' if active else 'OFF'}")
-        elif key == keyboard.Key.f11:
+        elif key == keyboard.Key.f12:
             mode = 2 if mode == 1 else 1  # toggle mode
             print(f"Switched to Mode {mode} ({mode_strengths[mode]}x)")
         elif key == keyboard.Key.esc:
@@ -106,3 +106,4 @@ threading.Thread(target=icon.run, daemon=True).start()
 print(f"Starting in Mode {mode} ({mode_strengths[mode]}x)")
 while running:
     time.sleep(0.2)
+
