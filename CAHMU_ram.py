@@ -37,30 +37,33 @@ tick_ms = 14  # 14 ms between moves
 
 start_strength = 3
 end_strength = 12
-mag_duration = 6.9  # seconds for full magazine (60 bullets)
+total_bullets = 60
+ramp_bullets = 20  # ramp occurs over first 20 bullets
+mag_duration = 6.9  # seconds for full magazine
+time_per_bullet = mag_duration / total_bullets
 
 mouse_controller = MouseController()
+bullet_count = 0  # bullets fired
 
 # ------------------------
-# Vertical ramp logic
+# Vertical ramp with bullet count
 # ------------------------
 def vertical_ramp_loop():
-    global left_pressed, right_pressed, active, running
+    global left_pressed, right_pressed, active, running, bullet_count
     while running:
         if active and left_pressed and right_pressed:
             start_time = time.time()
-            while running and left_pressed and right_pressed:
+            while running and left_pressed and right_pressed and bullet_count < total_bullets:
                 elapsed = time.time() - start_time
+                bullet_count = int(elapsed / time_per_bullet)
 
-                # Linear ramp calculation over full magazine duration
-                if elapsed < mag_duration:
-                    v_strength = start_strength + ((end_strength - start_strength) * (elapsed / mag_duration))
+                # Calculate vertical strength
+                if bullet_count < ramp_bullets:
+                    v_strength = start_strength + ((end_strength - start_strength) * (bullet_count / ramp_bullets))
                 else:
-                    v_strength = end_strength  # constant after magazine ends
+                    v_strength = end_strength
 
-                # Move vertically only
                 mouse_controller.move(0, v_strength)
-
                 time.sleep(tick_ms / 1000.0)
         else:
             time.sleep(0.01)
