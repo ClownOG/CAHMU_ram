@@ -33,8 +33,8 @@ active = True
 left_pressed = False
 right_pressed = False
 running = True
-tick_ms = 14  # small delay between moves
-vertical_strength = 8  # constant pull (set to 8x)
+tick_ms = 14  # 14 ms between moves
+vertical_strength = 12.5  # constant pull
 
 mouse_controller = MouseController()
 
