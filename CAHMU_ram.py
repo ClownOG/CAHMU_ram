@@ -34,7 +34,7 @@ left_pressed = False
 right_pressed = False
 running = True
 tick_ms = 0  # 14 ms between moves
-vertical_strength = 10  # constant pull
+vertical_strength = 6  # constant pull
 
 mouse_controller = MouseController()
 
@@ -97,4 +97,5 @@ threading.Thread(target=icon.run, daemon=True).start()
 # ------------------------
 while running:
     time.sleep(0.2)
+
 
