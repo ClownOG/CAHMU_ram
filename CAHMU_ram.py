@@ -30,13 +30,13 @@ except ImportError:
 # Configuration
 # ------------------------
 active = True
-mode = 1  # 1 = 12x, 2 = 20x
+mode = 1  # 1 = 12x, 2 = 15x
 left_pressed = False
 right_pressed = False
 running = True
 tick_ms = 14  # 14 ms between moves
 
-mode_strengths = {1: 12, 2: 20}  # mode: vertical pull strength
+mode_strengths = {1: 12, 2: 15}  # mode: vertical pull strength
 
 mouse_controller = MouseController()
 
@@ -66,6 +66,7 @@ def on_click(x, y, button, pressed):
         right_pressed = pressed
     elif button == mouse.Button.x2 and pressed:
         active = not active
+        print(f"Active toggled: {'ON' if active else 'OFF'}")
 
 mouse.Listener(on_click=on_click).start()
 
@@ -77,8 +78,10 @@ def on_press(key):
     try:
         if key == keyboard.Key.f9:
             active = not active
+            print(f"Active toggled: {'ON' if active else 'OFF'}")
         elif key == keyboard.Key.f11:
             mode = 2 if mode == 1 else 1  # toggle mode
+            print(f"Switched to Mode {mode} ({mode_strengths[mode]}x)")
         elif key == keyboard.Key.esc:
             running = False
             icon.stop()
@@ -100,5 +103,6 @@ threading.Thread(target=icon.run, daemon=True).start()
 # ------------------------
 # Keep script alive
 # ------------------------
+print(f"Starting in Mode {mode} ({mode_strengths[mode]}x)")
 while running:
     time.sleep(0.2)
