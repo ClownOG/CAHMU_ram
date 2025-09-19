@@ -53,8 +53,8 @@ def vertical_pull_loop():
                     v_strength = 3
                 elif elapsed <= 2.5:
                     v_strength = 6
-                else:
-                    v_strength = 9  # after 2.5s, constant 9x
+                elif elapsed >= 3:
+                    v_strength = 12  # after 3s, constant 12x
 
                 # Move vertically only
                 mouse_controller.move(0, v_strength)
