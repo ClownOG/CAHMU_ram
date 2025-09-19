@@ -30,23 +30,25 @@ except ImportError:
 # Configuration
 # ------------------------
 active = True
+mode = 1  # 1 = 12x, 2 = 20x
 left_pressed = False
 right_pressed = False
 running = True
 tick_ms = 14  # 14 ms between moves
 
-vertical_strength = 12  # constant pull
+mode_strengths = {1: 12, 2: 20}  # mode: vertical pull strength
 
 mouse_controller = MouseController()
 
 # ------------------------
-# Vertical constant movement
+# Vertical movement loop
 # ------------------------
 def vertical_loop():
-    global left_pressed, right_pressed, active, running
+    global left_pressed, right_pressed, active, running, mode
     while running:
         if active and left_pressed and right_pressed:
-            mouse_controller.move(0, vertical_strength)
+            strength = mode_strengths.get(mode, 12)
+            mouse_controller.move(0, strength)
             time.sleep(tick_ms / 1000.0)
         else:
             time.sleep(0.01)
@@ -71,13 +73,18 @@ mouse.Listener(on_click=on_click).start()
 # Keyboard listener
 # ------------------------
 def on_press(key):
-    global active, running
-    if key == keyboard.Key.f9:
-        active = not active
-    elif key == keyboard.Key.esc:
-        running = False
-        icon.stop()
-        return False
+    global active, running, mode
+    try:
+        if key == keyboard.Key.f9:
+            active = not active
+        elif key == keyboard.Key.f11:
+            mode = 2 if mode == 1 else 1  # toggle mode
+        elif key == keyboard.Key.esc:
+            running = False
+            icon.stop()
+            return False
+    except AttributeError:
+        pass
 
 keyboard.Listener(on_press=on_press).start()
 
@@ -85,7 +92,7 @@ keyboard.Listener(on_press=on_press).start()
 # System tray
 # ------------------------
 icon_image = Image.new('RGB', (64, 64), (50, 50, 50))
-icon = pystray.Icon("VerticalConstant", icon_image, "Vertical Constant", menu=pystray.Menu(
+icon = pystray.Icon("VerticalModes", icon_image, "Vertical Modes", menu=pystray.Menu(
     pystray.MenuItem("Exit", lambda icon, item: (setattr(sys.modules[__name__], 'running', False), icon.stop()))
 ))
 threading.Thread(target=icon.run, daemon=True).start()
