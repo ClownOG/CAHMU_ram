@@ -32,13 +32,11 @@ left_pressed = False
 right_pressed = False
 running = True
 tick_ms = 14
-base_vertical = 2
-max_vertical = 15  # max multiplier after ramp
 
 mouse_controller = mouse.Controller()
 
 # ------------------------
-# Progressive vertical movement logic
+# Vertical motion logic
 # ------------------------
 def vertical_motion_loop():
     global left_pressed, right_pressed, active, running
@@ -47,14 +45,12 @@ def vertical_motion_loop():
             start_time = time.time()
             while running and left_pressed and right_pressed:
                 elapsed = time.time() - start_time
-                # Determine vertical strength
-                if elapsed < 1:
+                # Strength profile
+                if elapsed <= 0.5:
                     vertical_strength = 3
-                elif elapsed < 8:
-                    # Ramp from 3 → 15 linearly
-                    vertical_strength = 3 + (elapsed - 1) * (15 - 3) / (8 - 1)
                 else:
-                    vertical_strength = 15
+                    vertical_strength = 6
+                # Vertical only
                 mouse_controller.move(0, vertical_strength)
                 time.sleep(tick_ms / 1000.0)
         else:
@@ -93,7 +89,7 @@ keyboard.Listener(on_press=on_press).start()
 # ------------------------
 # System tray
 # ------------------------
-icon_image = Image.new('RGB', (64, 64), (50, 50, 50))  # simple gray square
+icon_image = Image.new('RGB', (64, 64), (50, 50, 50))  # gray square
 icon = pystray.Icon("VerticalMover", icon_image, "Vertical Motion", menu=pystray.Menu(
     pystray.MenuItem("Exit", lambda icon, item: (setattr(sys.modules[__name__], 'running', False), icon.stop()))
 ))
