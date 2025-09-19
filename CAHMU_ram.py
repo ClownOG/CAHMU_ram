@@ -35,40 +35,23 @@ right_pressed = False
 running = True
 tick_ms = 14  # 14 ms between moves
 
-start_strength = 3
-end_strength = 12
-total_bullets = 60
-ramp_bullets = 20  # ramp occurs over first 20 bullets
-mag_duration = 6.9  # seconds for full magazine
-time_per_bullet = mag_duration / total_bullets
+vertical_strength = 12  # constant pull
 
 mouse_controller = MouseController()
-bullet_count = 0  # bullets fired
 
 # ------------------------
-# Vertical ramp with bullet count
+# Vertical constant movement
 # ------------------------
-def vertical_ramp_loop():
-    global left_pressed, right_pressed, active, running, bullet_count
+def vertical_loop():
+    global left_pressed, right_pressed, active, running
     while running:
         if active and left_pressed and right_pressed:
-            start_time = time.time()
-            while running and left_pressed and right_pressed and bullet_count < total_bullets:
-                elapsed = time.time() - start_time
-                bullet_count = int(elapsed / time_per_bullet)
-
-                # Calculate vertical strength
-                if bullet_count < ramp_bullets:
-                    v_strength = start_strength + ((end_strength - start_strength) * (bullet_count / ramp_bullets))
-                else:
-                    v_strength = end_strength
-
-                mouse_controller.move(0, v_strength)
-                time.sleep(tick_ms / 1000.0)
+            mouse_controller.move(0, vertical_strength)
+            time.sleep(tick_ms / 1000.0)
         else:
             time.sleep(0.01)
 
-threading.Thread(target=vertical_ramp_loop, daemon=True).start()
+threading.Thread(target=vertical_loop, daemon=True).start()
 
 # ------------------------
 # Mouse listener
@@ -102,7 +85,7 @@ keyboard.Listener(on_press=on_press).start()
 # System tray
 # ------------------------
 icon_image = Image.new('RGB', (64, 64), (50, 50, 50))
-icon = pystray.Icon("VerticalRamp", icon_image, "Vertical Ramp", menu=pystray.Menu(
+icon = pystray.Icon("VerticalConstant", icon_image, "Vertical Constant", menu=pystray.Menu(
     pystray.MenuItem("Exit", lambda icon, item: (setattr(sys.modules[__name__], 'running', False), icon.stop()))
 ))
 threading.Thread(target=icon.run, daemon=True).start()
