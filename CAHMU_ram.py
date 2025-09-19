@@ -34,9 +34,10 @@ left_pressed = False
 right_pressed = False
 running = True
 tick_ms = 14  # 14 ms between moves
+
 start_strength = 3
 end_strength = 12
-ramp_duration = 4  # seconds
+mag_duration = 6.9  # seconds for full magazine (60 bullets)
 
 mouse_controller = MouseController()
 
@@ -51,11 +52,11 @@ def vertical_ramp_loop():
             while running and left_pressed and right_pressed:
                 elapsed = time.time() - start_time
 
-                # Linear ramp calculation
-                if elapsed < ramp_duration:
-                    v_strength = start_strength + ((end_strength - start_strength) * (elapsed / ramp_duration))
+                # Linear ramp calculation over full magazine duration
+                if elapsed < mag_duration:
+                    v_strength = start_strength + ((end_strength - start_strength) * (elapsed / mag_duration))
                 else:
-                    v_strength = end_strength  # constant after ramp
+                    v_strength = end_strength  # constant after magazine ends
 
                 # Move vertically only
                 mouse_controller.move(0, v_strength)
@@ -97,7 +98,7 @@ keyboard.Listener(on_press=on_press).start()
 # ------------------------
 # System tray
 # ------------------------
-icon_image = Image.new('RGB', (64, 64), (50, 50, 50))  # simple gray square
+icon_image = Image.new('RGB', (64, 64), (50, 50, 50))
 icon = pystray.Icon("VerticalRamp", icon_image, "Vertical Ramp", menu=pystray.Menu(
     pystray.MenuItem("Exit", lambda icon, item: (setattr(sys.modules[__name__], 'running', False), icon.stop()))
 ))
